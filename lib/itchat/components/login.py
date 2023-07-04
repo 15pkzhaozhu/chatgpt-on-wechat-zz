@@ -99,7 +99,7 @@ def push_login(core):
         url = '%s/cgi-bin/mmwebwx-bin/webwxpushloginurl?uin=%s' % (
             config.BASE_URL, cookiesDict['wxuin'])
         headers = {'User-Agent': config.USER_AGENT}
-        r = core.s.get(url, headers=headers).json()
+        r = core.s.get(url, headers=headers, verify=False).json()
         if 'uuid' in r and r.get('ret') in (0, '0'):
             core.uuid = r['uuid']
             return r['uuid']
@@ -114,7 +114,7 @@ def get_QRuuid(self):
         'redirect_uri': 'https://wx.qq.com/cgi-bin/mmwebwx-bin/webwxnewloginpage?mod=desktop',
         'lang': 'zh_CN'}
     headers = {'User-Agent': config.USER_AGENT}
-    r = self.s.get(url, params=params, headers=headers)
+    r = self.s.get(url, params=params, headers=headers, verify=False)
     regx = r'window.QRLogin.code = (\d+); window.QRLogin.uuid = "(\S+?)";'
     data = re.search(regx, r.text)
     if data and data.group(1) == '200':
@@ -147,7 +147,7 @@ def check_login(self, uuid=None):
     params = 'loginicon=true&uuid=%s&tip=1&r=%s&_=%s' % (
         uuid, int(-localTime / 1579), localTime)
     headers = {'User-Agent': config.USER_AGENT}
-    r = self.s.get(url, params=params, headers=headers)
+    r = self.s.get(url, params=params, headers=headers, verify=False)
     regx = r'window.code=(\d+)'
     data = re.search(regx, r.text)
     if data and data.group(1) == '200':
@@ -175,7 +175,7 @@ def process_login_info(core, loginContent):
                'referer': 'https://wx.qq.com/?&lang=zh_CN&target=t'
                }
     r = core.s.get(core.loginInfo['url'],
-                   headers=headers, allow_redirects=False)
+                   headers=headers, allow_redirects=False, verify=False)
     core.loginInfo['url'] = core.loginInfo['url'][:core.loginInfo['url'].rfind(
         '/')]
     for indexUrl, detailedUrl in (
@@ -354,7 +354,7 @@ def sync_check(self):
     self.loginInfo['logintime'] += 1
     try:
         r = self.s.get(url, params=params, headers=headers,
-                       timeout=config.TIMEOUT)
+                       timeout=config.TIMEOUT, verify=False)
     except requests.exceptions.ConnectionError as e:
         try:
             if not isinstance(e.args[0].args[1], BadStatusLine):
@@ -406,7 +406,7 @@ def logout(self):
             'type': 1,
             'skey': self.loginInfo['skey'], }
         headers = {'User-Agent': config.USER_AGENT}
-        self.s.get(url, params=params, headers=headers)
+        self.s.get(url, params=params, headers=headers, verify=False)
         self.alive = False
     self.isLogging = False
     self.s.cookies.clear()
